@@ -58,6 +58,5 @@ jobs:
       azureSubscription: 'My-Service-Connection'
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
-      inlineScript: 'az storage blob upload-batch --account-name yabasirastorageaccount --account-key $AZURE_STORAGE_KEY --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
-
-
+      inlineScript: |
+        az storage blob upload-batch --account-name yabasirastorageaccount --account-key $AZURE_STORAGE_KEY --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
