@@ -4,62 +4,55 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 trigger:
-- master
+  - master
 
 pool:
   vmImage: ubuntu-latest
 
 jobs:
-- job: Build
-  displayName: 'Build and Test'
-  steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: '14.x'
-    displayName: 'Install Node.js'
+  - job: Build
+    displayName: 'Build and Test'
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '14.x'
+        displayName: 'Install Node.js'
 
-  - script: |
-      npm install
-      npm run build
-    displayName: 'npm install and build'
+      - script: |
+          npm install
+          npm run build
+        displayName: 'npm install and build'
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: drop'
-    inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-      ArtifactName: 'drop'
-      publishLocation: 'Container'
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Artifact: drop'
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'drop'
+          publishLocation: 'Container'
 
-# Deployment Job
-- job: Deploy
-  displayName: 'Deploy to Azure Storage'
-  dependsOn: Build
-  pool:
-    vmImage: 'ubuntu-latest'
-  steps:
-  - task: UseDotNet@2
-    inputs:
-      packageType: 'sdk'
-      version: '3.x'
-      installationPath: $(Agent.ToolsDirectory)/dotnet
+  - job: Deploy
+    displayName: 'Deploy to Azure Storage'
+    dependsOn: Build
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - task: UseDotNet@2
+        inputs:
+          packageType: 'sdk'
+          version: '3.x'
+          installationPath: $(Agent.ToolsDirectory)/dotnet
 
-  - script: |
-      ls -R $(Build.ArtifactStagingDirectory)  # List contents for debugging
-      echo "Source directory: $(Build.ArtifactStagingDirectory)"
-      export AZURE_CLIENT_ID=$(AZURE_CLIENT_ID)
-      export AZURE_CLIENT_SECRET=$(AZURE_CLIENT_SECRET)
-      export AZURE_TENANT_ID=$(AZURE_TENANT_ID)
-      az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-      az storage blob upload-batch --account-name yabasirastorageaccount --auth-mode login --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
-    displayName: 'Upload files to Azure Storage'
-    env:
-      AZURE_STORAGE_ACCOUNT: yabasirastorageaccount
+      - script: |
+          echo "Source directory: $(Build.ArtifactStagingDirectory)"
+          export AZURE_CLIENT_ID=$(AZURE_CLIENT_ID)
+          export AZURE_CLIENT_SECRET=$(AZURE_CLIENT_SECRET)
+          export AZURE_TENANT_ID=$(AZURE_TENANT_ID)
+          az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+        displayName: 'Set up Azure credentials'
 
-  - task: AzureCLI@2
-    displayName: 'Copy files to Azure Storage'
-    inputs:
-      azureSubscription: 'My-Service-Connection'
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'
-      inlineScript: |
-        az storage blob upload-batch --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
+      - script: |
+          az storage blob upload-batch --account-name yabasirastorageaccount --auth-mode login --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
+        displayName: 'Upload files to Azure Storage'
+        env:
+          AZURE_STORAGE_ACCOUNT: yabasirastorageaccount
+
