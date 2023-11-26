@@ -59,4 +59,4 @@ jobs:
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
-        az storage blob upload-batch --account-name yabasirastorageaccount --auth-mode login --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
+        az storage blob upload-batch --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
