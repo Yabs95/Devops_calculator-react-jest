@@ -26,7 +26,7 @@ jobs:
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: drop'
     inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/build' # Adjust the path based on your project structure
       ArtifactName: 'drop'
       publishLocation: 'Container'
 
