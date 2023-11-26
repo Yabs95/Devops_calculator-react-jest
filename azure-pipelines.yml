@@ -52,12 +52,12 @@ jobs:
       AZURE_STORAGE_ACCOUNT: yabasirastorageaccount
       AZURE_STORAGE_KEY: $(AzureStorageAccountKey)
 
-  - task: AzureFileCopy@4
+  - task: AzureCLI@2
     displayName: 'Copy files to Azure Storage'
     inputs:
-      SourcePath: '$(Build.ArtifactStagingDirectory)'
       azureSubscription: 'My-Service-Connection'
-      Destination: 'AzureBlob'
-      storage: 'yabasirastorageaccount'
-      containerName: '$web'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: 'az storage blob upload-batch --account-name yabasirastorageaccount --account-key $AZURE_STORAGE_KEY --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
+
 
