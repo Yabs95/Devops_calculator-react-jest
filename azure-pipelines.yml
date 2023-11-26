@@ -46,11 +46,11 @@ jobs:
   - script: |
       ls -R $(Build.ArtifactStagingDirectory)  # List contents for debugging
       echo "Source directory: $(Build.ArtifactStagingDirectory)"
-      az storage blob upload-batch --account-name yabasirastorageaccount --account-key $AZURE_STORAGE_KEY --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
+      az login --service-principal -u $(AZURE_CLIENT_ID) -p $(AZURE_CLIENT_SECRET) --tenant $(AZURE_TENANT_ID)
+      az storage blob upload-batch --account-name yabasirastorageaccount --auth-mode login --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
     displayName: 'Upload files to Azure Storage'
     env:
       AZURE_STORAGE_ACCOUNT: yabasirastorageaccount
-      AZURE_STORAGE_KEY: $(AzureStorageAccountKey)
 
   - task: AzureCLI@2
     displayName: 'Copy files to Azure Storage'
@@ -59,4 +59,4 @@ jobs:
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
-        az storage blob upload-batch --account-name yabasirastorageaccount --account-key $AZURE_STORAGE_KEY --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
+        az storage blob upload-batch --account-name yabasirastorageaccount --auth-mode login --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
