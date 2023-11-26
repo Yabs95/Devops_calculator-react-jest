@@ -44,19 +44,20 @@ jobs:
       installationPath: $(Agent.ToolsDirectory)/dotnet
 
   - script: |
-    ls -R $(Build.ArtifactStagingDirectory)/drop
-    echo "Source directory: $(Build.ArtifactStagingDirectory)/drop"
-    az storage blob upload-batch --account-name yabasirastorageaccount --account-key $AZURE_STORAGE_KEY --destination '$web' --source '$(Build.ArtifactStagingDirectory)/drop'
-  displayName: 'Upload files to Azure Storage'
-  env:
-    AZURE_STORAGE_ACCOUNT: yabasirastorageaccount
-    AZURE_STORAGE_KEY: $(AzureStorageAccountKey)
+      ls -R $(Build.ArtifactStagingDirectory)  # List contents for debugging
+      echo "Source directory: $(Build.ArtifactStagingDirectory)"
+      az storage blob upload-batch --account-name yabasirastorageaccount --account-key $AZURE_STORAGE_KEY --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
+    displayName: 'Upload files to Azure Storage'
+    env:
+      AZURE_STORAGE_ACCOUNT: yabasirastorageaccount
+      AZURE_STORAGE_KEY: $(AzureStorageAccountKey)
 
   - task: AzureFileCopy@4
     displayName: 'Copy files to Azure Storage'
     inputs:
-      SourcePath: '$(Build.ArtifactStagingDirectory)/drop'
+      SourcePath: '$(Build.ArtifactStagingDirectory)'
       azureSubscription: 'My-Service-Connection'
       Destination: 'AzureBlob'
       storage: 'yabasirastorageaccount'
       containerName: '$web'
+
