@@ -47,7 +47,7 @@ jobs:
     displayName: 'Copy files to Azure Storage'
     inputs:
       SourcePath: '$(Build.ArtifactStagingDirectory)/drop'
-      azureSubscription:'My-Service-Connection'
+      azureSubscription: 'My-Service-Connection'
       Destination: 'AzureBlob'
       storage: 'yabasirastorageaccount'
       containerName: '$web'
