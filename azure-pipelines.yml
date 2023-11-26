@@ -15,8 +15,9 @@ jobs:
 
   - script: |
       npm install
+      npm test
       npm run build
-    displayName: 'npm install and build'
+    displayName: 'npm install, test and build'
 
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: drop'
