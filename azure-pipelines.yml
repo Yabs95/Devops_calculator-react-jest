@@ -44,7 +44,7 @@ jobs:
       installationPath: $(Agent.ToolsDirectory)/dotnet
 
   - script: |
-      find "$(Build.ArtifactStagingDirectory)/drop" -type f -print0 | xargs -0 -I {} az storage blob upload --account-name yabasirastorageaccount --account-key $(AZURE_STORAGE_KEY) --container-name '$web' --name "{}" --type block --content-type "$(file -b --mime-type "{}")"
+      az storage blob upload-batch --account-name yabasirastorageaccount --account-key $(AZURE_STORAGE_KEY) --destination '$web' --source '$(Build.ArtifactStagingDirectory)/drop'
     displayName: 'Upload files to Azure Storage'
     env:
       AZURE_STORAGE_ACCOUNT: yabasirastorageaccount
