@@ -1,60 +1,75 @@
+# Define the trigger for the CD pipeline, which is triggered on changes to the master branch.
 trigger:
 - master
 
+# Define the pool of agents to use for the CD pipeline, using the latest version of Ubuntu.
 pool:
   vmImage: ubuntu-latest
 
+# Define the jobs for the CD pipeline.
 jobs:
-- job: Build
-  displayName: 'Build and Test'
-  steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: '14.x'
-    displayName: 'Install Node.js'
+  
+  # Build Job
+  - job: Build
+    displayName: 'Build and Test'
+    steps:
+    
+      # Use the NodeTool task to install Node.js version 14.x.
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '14.x'
+        displayName: 'Install Node.js'
 
-  - script: |
-      npm install
-      npm test
-      npm run build
-    displayName: 'npm install, test and build'
+      # Run npm install, test, and build scripts.
+      - script: |
+          npm install
+          npm test
+          npm run build
+        displayName: 'npm install, test and build'
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: drop'
-    inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-      ArtifactName: 'drop'
-      publishLocation: 'Container'
+      # Publish build artifacts to be used in the deployment job.
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Artifact: drop'
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'drop'
+          publishLocation: 'Container'
 
-# Deployment Job
-- job: Deploy
-  displayName: 'Deploy to Azure Storage'
-  dependsOn: Build
-  pool:
-    vmImage: 'ubuntu-latest'
-  steps:
-  - task: UseDotNet@2
-    inputs:
-      packageType: 'sdk'
-      version: '3.x'
-      installationPath: $(Agent.ToolsDirectory)/dotnet
+  # Deployment Job
+  - job: Deploy
+    displayName: 'Deploy to Azure Storage'
+    dependsOn: Build
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    
+      # Use the UseDotNet task to install .NET SDK version 3.x.
+      - task: UseDotNet@2
+        inputs:
+          packageType: 'sdk'
+          version: '3.x'
+          installationPath: $(Agent.ToolsDirectory)/dotnet
 
-  - script: |
-      ls -R $(Build.ArtifactStagingDirectory)  # List contents for debugging
-      echo "Source directory: $(Build.ArtifactStagingDirectory)"
-      export AZURE_CLIENT_ID=$AZURE_CLIENT_ID
-      export AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET
-      export AZURE_TENANT_ID=$AZURE_TENANT_ID
-      az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-      az storage blob upload-batch --account-name yabasirastorageaccount --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
-    displayName: 'Upload files to Azure Storage'
-    env:
-      AZURE_STORAGE_ACCOUNT: yabasirastorageaccount
+      # Run a script to list artifacts, set environment variables, and upload files to Azure Storage.
+      - script: |
+          ls -R $(Build.ArtifactStagingDirectory)  # List contents for debugging
+          echo "Source directory: $(Build.ArtifactStagingDirectory)"
+          export AZURE_CLIENT_ID=$AZURE_CLIENT_ID
+          export AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET
+          export AZURE_TENANT_ID=$AZURE_TENANT_ID
+          az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+          az storage blob upload-batch --account-name yabasirastorageaccount --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
+        displayName: 'Upload files to Azure Storage'
+        env:
+          AZURE_STORAGE_ACCOUNT: yabasirastorageaccount
 
-  - task: AzureCLI@2
-    inputs:
-      azureSubscription: 'My-Service-Connection'
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'
-      inlineScript: |
-        az storage blob upload-batch --account-name yabasirastorageaccount --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
+      # Use Azure CLI to upload files to Azure Storage.
+      - task: AzureCLI@2
+        inputs:
+          azureSubscription: 'My-Service-Connection'
+          scriptType: 'bash'
+          scriptLocation: 'inlineScript'
+          inlineScript: |
+            az storage blob upload-batch --account-name yabasirastorageaccount --destination '$web' --source '$(Build.ArtifactStagingDirectory)'
+
+
