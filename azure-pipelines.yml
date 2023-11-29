@@ -28,12 +28,16 @@ steps:
     key: 'npm | "$(Agent.OS)" | package-lock.json'
     restoreKeys: |
       npm | "$(Agent.OS)"
-    path: $(npm_config_cache)
+    path: node_modules # Caching the node_modules directory
   displayName: 'Cache npm'
-  
+
 # Install npm dependencies
 - script: npm install
   displayName: 'npm install'
+
+# Run linting to catch stylistic errors and potential problems
+- script: npm run lint
+  displayName: 'Lint Code'
 
 # Run tests to ensure code quality
 - script: npm test
