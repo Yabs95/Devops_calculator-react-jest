@@ -30,7 +30,7 @@ steps:
       npm | "$(Agent.OS)"
     path: $(npm_config_cache)
   displayName: 'Cache npm'
-
+  
 # Install npm dependencies
 - script: npm install
   displayName: 'npm install'
